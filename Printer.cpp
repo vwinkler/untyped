@@ -5,22 +5,22 @@ Printer::Printer(std::ostream& ostream)
 {
 }
 
-void Printer::printTerm(const Term* term)
+void Printer::printTerm(const Term& term)
 {
-    switch(term->type) {
+    switch(term.type) {
     case TermType::Variable:
-        mOut << term->variable;
+        mOut << term.variable;
         break;
     case TermType::Application:
         mOut << "(";
-        printTerm(term->leftTerm);
+        printTerm(*term.leftTerm);
         mOut << " ";
-        printTerm(term->rightTerm);
+        printTerm(*term.rightTerm);
         mOut << ")";
         break;
     case TermType::Abstraction:
-        mOut << "\\" << term->argument << ".";
-        printTerm(term->trunk);
+        mOut << "\\" << term.argument << ".";
+        printTerm(*term.trunk);
         break;
     }
 }

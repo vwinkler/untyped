@@ -10,7 +10,6 @@ enum class TermType {
 
 struct Term {
     TermType type;
-    Term* parent;
     union {
         char variable;
         struct {
@@ -23,7 +22,17 @@ struct Term {
         };
     };
     
-    Term(TermType type);
+    explicit Term(char variable);
+    Term(Term leftTerm, Term rightTerm);
+    Term(char argument, Term trunk);
+    ~Term();
+    Term(const Term& term);
+    Term(Term&& term);
+    Term& operator=(const Term& term);
+    Term& operator=(Term&& term);
+    
+private:
+    void clear();
 };
 
 #endif // TERM_H

@@ -12,7 +12,7 @@ class Printer
     
 public:
     Printer(std::ostream& ostream);
-    void printTerm(const Term* term);
+    void printTerm(const Term& term);
 };
 
 #endif // PRINTER_H

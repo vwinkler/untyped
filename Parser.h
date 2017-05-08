@@ -23,13 +23,13 @@ class Parser
 {
     std::istream& mIn;
     
-    Term* parseTerm();
+    Term parseTerm();
     void expect(char expectedChar);
     void expect(std::vector<char> expectedChars);
     
 public:
     Parser(std::istream& in);
-    Term* buildSyntaxTree();
+    Term buildSyntaxTree();
 };
 
 #endif // PARSER_H

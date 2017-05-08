@@ -43,35 +43,39 @@ Parser::Parser(std::istream& in)
 {
 }
 
-Term* Parser::parseTerm()
+Term Parser::parseTerm()
 {
-    Term* result = nullptr;
+    Term result('\0');
     char c = mIn.peek();
     switch(c) {
-    case '(':
-        result = new Term(TermType::Application);
+    case '(': { // Application
         mIn.get();
-        result->leftTerm = parseTerm();
+        Term leftTerm = parseTerm();
         expect(' ');
-        result->rightTerm = parseTerm();
+        Term rightTerm = parseTerm();
         expect(')');
+        result = Term(std::move(leftTerm), std::move(rightTerm));
         break;
-    case '\\':
-        result = new Term(TermType::Abstraction);
+    }
+    case '\\': { // Abstraction
         mIn.get();
-        result->argument = mIn.get();
+        char argument = mIn.get();
         expect('.');
-        result->trunk = parseTerm();
+        Term trunk = parseTerm();
+        result = Term(argument, std::move(trunk));
         break;
-    default:
+    }
+    default: { // Variable
         if(c < 'a' || c >= 'z') {
             SyntaxError error(mIn.gcount(), c, "alphabetic character");
             throw error;
         }
-        result = new Term(TermType::Variable);
-        result->variable = c;
+        char variable = c;
         mIn.get();
-    };
+        result = Term(variable);
+        break;
+    }
+    }
     return result;
 }
 
@@ -90,7 +94,7 @@ void Parser::expect(std::vector<char> expectedChars)
     }
 }
 
-Term* Parser::buildSyntaxTree()
+Term Parser::buildSyntaxTree()
 {
     return parseTerm();
 }
