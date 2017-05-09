@@ -9,19 +9,21 @@ enum class TermType {
 };
 
 struct Term {
-    TermType type;
+private:
+    TermType mType;
     union {
-        char variable;
+        char mVariable;
         struct {
-            Term* leftTerm;
-            Term* rightTerm;
+            Term* mLeftTerm;
+            Term* mRightTerm;
         };
         struct {
-            char argument;
-            Term* trunk;
+            char mArgument;
+            Term* mTrunk;
         };
     };
     
+public:
     explicit Term(char variable);
     Term(Term leftTerm, Term rightTerm);
     Term(char argument, Term trunk);
@@ -30,6 +32,21 @@ struct Term {
     Term(Term&& term);
     Term& operator=(const Term& term);
     Term& operator=(Term&& term);
+    
+    TermType type() const;
+    char variable() const;
+    void setVariable(char variable);
+    const Term& leftTerm() const;
+    Term& leftTerm();
+    void setLeftTerm(Term term);
+    const Term& rightTerm() const;
+    Term& rightTerm();
+    void setRightTerm(Term term);
+    char argument() const;
+    void setArgument(char argument);
+    const Term& trunk() const;
+    Term& trunk();
+    void setTrunk(Term trunk);
     
 private:
     void clear();
