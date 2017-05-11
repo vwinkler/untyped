@@ -1,21 +1,22 @@
 #include "Term.h"
 #include <cassert>
 #include <memory>
+#include <vector>
 
 Term::Term(char variable)
-:   mType(TermType::Variable), mVariable(variable)
+    :   mType(TermType::Variable), mVariable(variable)
 {
 }
 
 Term::Term(Term leftTerm, Term rightTerm)
-:   mType(TermType::Application),
+    :   mType(TermType::Application),
         mLeftTerm(new Term(std::move(leftTerm))),
         mRightTerm(new Term(std::move(rightTerm)))
 {
 }
 
 Term::Term(char argument, Term trunk)
-:   mType(TermType::Abstraction),
+    :   mType(TermType::Abstraction),
         mArgument(argument),
         mTrunk(new Term(std::move(trunk)))
 {
@@ -26,7 +27,8 @@ Term::~Term()
     clear();
 }
 
-void Term::clear() {
+void Term::clear()
+{
     switch(mType) {
     case TermType::Variable:
         break;
@@ -42,6 +44,7 @@ void Term::clear() {
         break;
     }
 }
+
 
 Term::Term(const Term& term)
 {
@@ -84,26 +87,22 @@ Term::Term(Term&& term)
 
 Term& Term::operator=(const Term& term)
 {
-    mType = term.mType;
-    Term* temp;
-    switch(mType) {
-    case TermType::Variable:
-        mVariable = term.mVariable;
-        break;
-    case TermType::Application:
-        temp = mLeftTerm;
-        mLeftTerm = new Term(*term.mLeftTerm);
-        delete temp;
-        temp = mRightTerm;
-        mRightTerm = new Term(*term.mRightTerm);
-        delete temp;
-        break;
-    case TermType::Abstraction:
-        mArgument = term.mArgument;
-        temp = mTrunk;
-        mTrunk = new Term(*term.mTrunk);
-        delete temp;
-        break;
+    if(this != &term) {
+        clear();
+        mType = term.mType;
+        switch(mType) {
+        case TermType::Variable:
+            mVariable = term.mVariable;
+            break;
+        case TermType::Application:
+            mLeftTerm = new Term(*term.mLeftTerm);
+            mRightTerm = new Term(*term.mRightTerm);
+            break;
+        case TermType::Abstraction:
+            mArgument = term.mArgument;
+            mTrunk = new Term(*term.mTrunk);
+            break;
+        }
     }
     return *this;
 }
@@ -111,8 +110,21 @@ Term& Term::operator=(const Term& term)
 
 Term& Term::operator=(Term&& term)
 {
-    if(mType != term.mType){
-        clear();
+    assert(!isSubterm(term, *this));
+    if(mType != term.mType) {
+        std::vector<Term*> toDelete;
+        switch(mType) {
+        case TermType::Variable:
+            break;
+        case TermType::Application:
+            toDelete.push_back(mLeftTerm);
+            toDelete.push_back(mRightTerm);
+            break;
+        case TermType::Abstraction:
+            toDelete.push_back(mTrunk);
+            break;
+        }
+        
         mType = term.mType;
         switch(mType) {
         case TermType::Variable:
@@ -130,6 +142,8 @@ Term& Term::operator=(Term&& term)
             term.mTrunk = nullptr;
             break;
         }
+        for(auto x : toDelete)
+            delete x;
     } else {
         switch(term.mType) {
         case TermType::Variable:
@@ -228,3 +242,25 @@ void Term::setTrunk(Term trunk)
     assert(mType == TermType::Abstraction);
     mTrunk = new Term(std::move(trunk));
 }
+
+bool Term::isSubterm(const Term& term, const Term& sub)
+{
+    bool result;
+    switch(term.mType) {
+    case TermType::Variable:
+        result = false;
+        break;
+    case TermType::Application:
+        result = &term.leftTerm() == &sub
+            || &term.rightTerm() == &sub
+            || isSubterm(term.leftTerm(), sub)
+            || isSubterm(term.rightTerm(), sub);
+        break;
+    case TermType::Abstraction:
+        result = &term.trunk() == &sub
+            || isSubterm(term.trunk(), sub);
+        break;
+    }
+    return result;
+}
+

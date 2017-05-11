@@ -1,6 +1,7 @@
 #ifndef TERM_H
 #define TERM_H
 #include <stddef.h>
+#include <functional>
 
 enum class TermType {
     Variable,
@@ -8,21 +9,7 @@ enum class TermType {
     Abstraction
 };
 
-struct Term {
-private:
-    TermType mType;
-    union {
-        char mVariable;
-        struct {
-            Term* mLeftTerm;
-            Term* mRightTerm;
-        };
-        struct {
-            char mArgument;
-            Term* mTrunk;
-        };
-    };
-    
+struct Term {    
 public:
     explicit Term(char variable);
     Term(Term leftTerm, Term rightTerm);
@@ -49,7 +36,21 @@ public:
     void setTrunk(Term trunk);
     
 private:
+    TermType mType;
+    union {
+        char mVariable;
+        struct {
+            Term* mLeftTerm;
+            Term* mRightTerm;
+        };
+        struct {
+            char mArgument;
+            Term* mTrunk;
+        };
+    };
+    
     void clear();
+    bool isSubterm(const Term& term, const Term& sub);
 };
 
 #endif // TERM_H
