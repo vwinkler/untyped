@@ -18,12 +18,17 @@ int main(int argc, char **argv) {
     
     Printer printer(std::cout);
     printer.printTerm(term);
-    std::cout << std::endl;
     
     Interpreter interpreter(term);
-    const Term* redex = interpreter.nextRedex();
-    printer.setSurroundedTerms({std::make_pair(redex, std::make_pair("{{", "}}"))});
-    printer.printTerm(interpreter.term());
+    size_t count = 5;
+    bool changed;
+    do {
+        const Term* redex = interpreter.nextRedex();
+        printer.setSurroundedTerms({std::make_pair(redex, std::make_pair("{{", "}}"))});
+        std::cout << std::endl;
+        printer.printTerm(interpreter.term());
+        changed = interpreter.applyOnce();
+    } while(changed && --count > 0);
     std::cout << std::endl;
     return 0;
 }

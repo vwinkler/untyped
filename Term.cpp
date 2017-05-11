@@ -84,19 +84,25 @@ Term::Term(Term&& term)
 
 Term& Term::operator=(const Term& term)
 {
-    clear();
     mType = term.mType;
+    Term* temp;
     switch(mType) {
     case TermType::Variable:
         mVariable = term.mVariable;
         break;
     case TermType::Application:
+        temp = mLeftTerm;
         mLeftTerm = new Term(*term.mLeftTerm);
+        delete temp;
+        temp = mRightTerm;
         mRightTerm = new Term(*term.mRightTerm);
+        delete temp;
         break;
     case TermType::Abstraction:
         mArgument = term.mArgument;
+        temp = mTrunk;
         mTrunk = new Term(*term.mTrunk);
+        delete temp;
         break;
     }
     return *this;
