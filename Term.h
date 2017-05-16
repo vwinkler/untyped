@@ -42,11 +42,11 @@ private:
         struct {
             Term* mLeftTerm;
             Term* mRightTerm;
-        };
+        } mApplication;
         struct {
             char mArgument;
             Term* mTrunk;
-        };
+        } mAbstraction;
     };
     
     void clear();

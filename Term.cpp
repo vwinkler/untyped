@@ -10,15 +10,13 @@ Term::Term(char variable)
 
 Term::Term(Term leftTerm, Term rightTerm)
     :   mType(TermType::Application),
-        mLeftTerm(new Term(std::move(leftTerm))),
-        mRightTerm(new Term(std::move(rightTerm)))
+        mApplication{new Term(std::move(leftTerm)), new Term(std::move(rightTerm))}
 {
 }
 
 Term::Term(char argument, Term trunk)
     :   mType(TermType::Abstraction),
-        mArgument(argument),
-        mTrunk(new Term(std::move(trunk)))
+        mAbstraction{argument, new Term(std::move(trunk))}
 {
 }
 
@@ -33,14 +31,14 @@ void Term::clear()
     case TermType::Variable:
         break;
     case TermType::Application:
-        delete mLeftTerm;
-        mLeftTerm = nullptr;
-        delete mRightTerm;
-        mRightTerm = nullptr;
+        delete mApplication.mLeftTerm;
+        mApplication.mLeftTerm = nullptr;
+        delete mApplication.mRightTerm;
+        mApplication.mRightTerm = nullptr;
         break;
     case TermType::Abstraction:
-        delete mTrunk;
-        mTrunk = nullptr;
+        delete mAbstraction.mTrunk;
+        mAbstraction.mTrunk = nullptr;
         break;
     }
 }
@@ -54,12 +52,12 @@ Term::Term(const Term& term)
         mVariable = term.mVariable;
         break;
     case TermType::Application:
-        mLeftTerm = new Term(*term.mLeftTerm);
-        mRightTerm = new Term(*term.mRightTerm);
+        mApplication.mLeftTerm = new Term(*term.mApplication.mLeftTerm);
+        mApplication.mRightTerm = new Term(*term.mApplication.mRightTerm);
         break;
     case TermType::Abstraction:
-        mArgument = term.mArgument;
-        mTrunk = new Term(*term.mTrunk);
+        mAbstraction.mArgument = term.mAbstraction.mArgument;
+        mAbstraction.mTrunk = new Term(*term.mAbstraction.mTrunk);
         break;
     }
 }
@@ -72,15 +70,15 @@ Term::Term(Term&& term)
         mVariable = term.mVariable;
         break;
     case TermType::Application:
-        mLeftTerm = term.mLeftTerm;
-        term.mLeftTerm = nullptr;
-        mRightTerm = term.mRightTerm;
-        term.mRightTerm = nullptr;
+        mApplication.mLeftTerm = term.mApplication.mLeftTerm;
+        term.mApplication.mLeftTerm = nullptr;
+        mApplication.mRightTerm = term.mApplication.mRightTerm;
+        term.mApplication.mRightTerm = nullptr;
         break;
     case TermType::Abstraction:
-        mArgument = term.mArgument;
-        mTrunk = term.mTrunk;
-        term.mTrunk = nullptr;
+        mAbstraction.mArgument = term.mAbstraction.mArgument;
+        mAbstraction.mTrunk = term.mAbstraction.mTrunk;
+        term.mAbstraction.mTrunk = nullptr;
         break;
     }
 }
@@ -95,12 +93,12 @@ Term& Term::operator=(const Term& term)
             mVariable = term.mVariable;
             break;
         case TermType::Application:
-            mLeftTerm = new Term(*term.mLeftTerm);
-            mRightTerm = new Term(*term.mRightTerm);
+            mApplication.mLeftTerm = new Term(*term.mApplication.mLeftTerm);
+            mApplication.mRightTerm = new Term(*term.mApplication.mRightTerm);
             break;
         case TermType::Abstraction:
-            mArgument = term.mArgument;
-            mTrunk = new Term(*term.mTrunk);
+            mAbstraction.mArgument = term.mAbstraction.mArgument;
+            mAbstraction.mTrunk = new Term(*term.mAbstraction.mTrunk);
             break;
         }
     }
@@ -117,11 +115,11 @@ Term& Term::operator=(Term&& term)
         case TermType::Variable:
             break;
         case TermType::Application:
-            toDelete.push_back(mLeftTerm);
-            toDelete.push_back(mRightTerm);
+            toDelete.push_back(mApplication.mLeftTerm);
+            toDelete.push_back(mApplication.mRightTerm);
             break;
         case TermType::Abstraction:
-            toDelete.push_back(mTrunk);
+            toDelete.push_back(mAbstraction.mTrunk);
             break;
         }
         
@@ -131,31 +129,31 @@ Term& Term::operator=(Term&& term)
             mVariable = term.mVariable;
             break;
         case TermType::Application:
-            mLeftTerm = term.mLeftTerm;
-            term.mLeftTerm = nullptr;
-            mRightTerm = term.mRightTerm;
-            term.mRightTerm = nullptr;
+            mApplication.mLeftTerm = term.mApplication.mLeftTerm;
+            term.mApplication.mLeftTerm = nullptr;
+            mApplication.mRightTerm = term.mApplication.mRightTerm;
+            term.mApplication.mRightTerm = nullptr;
             break;
         case TermType::Abstraction:
-            mArgument = term.mArgument;
-            mTrunk = term.mTrunk;
-            term.mTrunk = nullptr;
+            mAbstraction.mArgument = term.mAbstraction.mArgument;
+            mAbstraction.mTrunk = term.mAbstraction.mTrunk;
+            term.mAbstraction.mTrunk = nullptr;
             break;
         }
         for(auto x : toDelete)
             delete x;
     } else {
-        switch(term.mType) {
+        switch(mType) {
         case TermType::Variable:
             std::swap(mVariable, term.mVariable);
             break;
         case TermType::Application:
-            std::swap(mLeftTerm, term.mLeftTerm);
-            std::swap(mRightTerm, term.mRightTerm);
+            std::swap(mApplication.mLeftTerm, term.mApplication.mLeftTerm);
+            std::swap(mApplication.mRightTerm, term.mApplication.mRightTerm);
             break;
         case TermType::Abstraction:
-            std::swap(mArgument, term.mArgument);
-            std::swap(mTrunk, term.mTrunk);
+            std::swap(mAbstraction.mArgument, term.mAbstraction.mArgument);
+            std::swap(mAbstraction.mTrunk, term.mAbstraction.mTrunk);
             break;
         }
     }
@@ -180,67 +178,67 @@ void Term::setVariable(char variable)
 const Term& Term::leftTerm() const
 {
     assert(mType == TermType::Application);
-    return *mLeftTerm;
+    return *mApplication.mLeftTerm;
 }
 
 Term& Term::leftTerm()
 {
     assert(mType == TermType::Application);
-    return *mLeftTerm;
+    return *mApplication.mLeftTerm;
 }
 
 void Term::setLeftTerm(Term term) {
     assert(mType == TermType::Application);
-    delete mLeftTerm;
-    mLeftTerm = new Term(std::move(term));
+    delete mApplication.mLeftTerm;
+    mApplication.mLeftTerm = new Term(std::move(term));
 }
 
 const Term& Term::rightTerm() const
 {
     assert(mType == TermType::Application);
-    return *mRightTerm;
+    return *mApplication.mRightTerm;
 }
 
 Term& Term::rightTerm()
 {
     assert(mType == TermType::Application);
-    return *mRightTerm;
+    return *mApplication.mRightTerm;
 }
 
 void Term::setRightTerm(Term term) {
     assert(mType == TermType::Application);
-    delete mRightTerm;
-    mRightTerm = new Term(std::move(term));
+    delete mApplication.mRightTerm;
+    mApplication.mRightTerm = new Term(std::move(term));
 }
 
 char Term::argument() const
 {
     assert(mType == TermType::Abstraction);
-    return mArgument;
+    return mAbstraction.mArgument;
 }
 
 void Term::setArgument(char argument)
 {
     assert(mType == TermType::Abstraction);
-    mArgument = argument;
+    mAbstraction.mArgument = argument;
 }
 
 const Term& Term::trunk() const
 {
     assert(mType == TermType::Abstraction);
-    return *mTrunk;
+    return *mAbstraction.mTrunk;
 }
 
 Term& Term::trunk()
 {
     assert(mType == TermType::Abstraction);
-    return *mTrunk;
+    return *mAbstraction.mTrunk;
 }
 
 void Term::setTrunk(Term trunk)
 {
     assert(mType == TermType::Abstraction);
-    mTrunk = new Term(std::move(trunk));
+    mAbstraction.mTrunk = new Term(std::move(trunk));
 }
 
 bool Term::isSubterm(const Term& term, const Term& sub)
