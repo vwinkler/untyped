@@ -1,7 +1,6 @@
 #include "Term.h"
 #include <cassert>
 #include <memory>
-#include <vector>
 
 Term::Term(char variable)
     :   mType(TermType::Variable), mVariable(variable)
@@ -41,6 +40,23 @@ void Term::clear()
         mAbstraction.mTrunk = nullptr;
         break;
     }
+}
+
+std::vector<Term*> Term::salvage()
+{
+    std::vector<Term*> toDelete;
+    switch(mType) {
+    case TermType::Variable:
+        break;
+    case TermType::Application:
+        toDelete.push_back(mApplication.mLeftTerm);
+        toDelete.push_back(mApplication.mRightTerm);
+        break;
+    case TermType::Abstraction:
+        toDelete.push_back(mAbstraction.mTrunk);
+        break;
+    }
+    return toDelete;
 }
 
 
@@ -86,7 +102,7 @@ Term::Term(Term&& term)
 Term& Term::operator=(const Term& term)
 {
     if(this != &term) {
-        clear();
+        auto toDelete = salvage();
         mType = term.mType;
         switch(mType) {
         case TermType::Variable:
@@ -101,6 +117,8 @@ Term& Term::operator=(const Term& term)
             mAbstraction.mTrunk = new Term(*term.mAbstraction.mTrunk);
             break;
         }
+        for(auto x : toDelete)
+            delete x;
     }
     return *this;
 }
@@ -110,18 +128,7 @@ Term& Term::operator=(Term&& term)
 {
     assert(!isSubterm(term, *this));
     if(mType != term.mType) {
-        std::vector<Term*> toDelete;
-        switch(mType) {
-        case TermType::Variable:
-            break;
-        case TermType::Application:
-            toDelete.push_back(mApplication.mLeftTerm);
-            toDelete.push_back(mApplication.mRightTerm);
-            break;
-        case TermType::Abstraction:
-            toDelete.push_back(mAbstraction.mTrunk);
-            break;
-        }
+        auto toDelete = salvage();
         
         mType = term.mType;
         switch(mType) {

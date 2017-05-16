@@ -2,6 +2,7 @@
 #define TERM_H
 #include <stddef.h>
 #include <functional>
+#include <vector>
 
 enum class TermType {
     Variable,
@@ -50,6 +51,7 @@ private:
     };
     
     void clear();
+    std::vector<Term*> salvage();
     bool isSubterm(const Term& term, const Term& sub);
 };
 
