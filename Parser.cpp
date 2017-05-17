@@ -20,7 +20,7 @@ std::string SyntaxError::createMessage(size_t character, char receivedCharacter,
 {
     std::stringstream msg;
     for(auto it = expectedCharacter.begin(); it != expectedCharacter.end(); ++it) {
-        msg << "'" << *it << "'";
+        msg << convertChar(*it);
         if(it + 1 != expectedCharacter.end() && it + 2 != expectedCharacter.end())
             msg << ", ";
         else if (it + 1 != expectedCharacter.end())
@@ -34,7 +34,21 @@ std::string SyntaxError::createMessage(size_t character, char receivedCharacter,
     std::stringstream msg;
     msg << "syntax error at " << character << "; expected "
     << expectation
-    << ", but received '" << receivedCharacter << "'";
+    << ", but received " << convertChar(receivedCharacter);
+    return msg.str();
+}
+
+std::string SyntaxError::convertChar(char c)
+{
+    std::stringstream msg;
+    switch(c) {
+    case std::char_traits<char>::eof():
+        msg << "end of file";
+        break;
+    default:
+        msg << "'" << c << "'";
+        break;
+    }
     return msg.str();
 }
 
@@ -96,5 +110,7 @@ void Parser::expect(std::vector<char> expectedChars)
 
 Term Parser::buildSyntaxTree()
 {
-    return parseTerm();
+    Term result = parseTerm();
+    expect(std::char_traits<char>::eof());
+    return result;
 }

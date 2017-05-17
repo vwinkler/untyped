@@ -17,6 +17,7 @@ public:
 private:
     static std::string createMessage(size_t character, char receivedCharacter, const std::vector<char>& expectedCharacter);
     static std::string createMessage(size_t character, char receivedCharacter, const std::string& expectation);
+    static std::string convertChar(char c);
 };
 
 class Parser
