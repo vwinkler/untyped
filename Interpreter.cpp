@@ -1,6 +1,9 @@
 #include "Interpreter.h"
 #include <cassert>
 #include <memory>
+#include <stdexcept>
+#include <limits>
+#include <sstream>
 
 Interpreter::Interpreter(Term term)
  : mTerm(std::move(term))
@@ -63,7 +66,7 @@ Term* Interpreter::findRedex(Term* term)
     return const_cast<Term*>(findRedex(static_cast<const Term*>(term)));
 }
 
-Term Interpreter::substitute(char variable, Term& target, const Term& term)
+void Interpreter::substitute(Variable variable, Term& target, const Term& term)
 {
     switch(target.type()) {
     case TermType::Variable:
@@ -71,12 +74,39 @@ Term Interpreter::substitute(char variable, Term& target, const Term& term)
             target = term;
         break;
     case TermType::Abstraction:
-        if(target.argument() != variable)
+        if(target.argument() != variable){
+            auto newVar = findReplacement(target.argument(), term);
+            if(newVar.name() == variable.name())
+                newVar = commonVariable(newVar, variable);
+            substitute(target.argument(), target.trunk(), Term(newVar));
+            target.setArgument(newVar);
             substitute(variable, target.trunk(), term);
+        }
         break;
     case TermType::Application:
         substitute(variable, target.leftTerm(), term);
         substitute(variable, target.rightTerm(), term);
         break;
     }
+}
+
+Variable Interpreter::findReplacement(Variable variable, const Term& term)
+{
+    Variable result = variable;
+    switch(term.type()) {
+    case TermType::Variable:
+        if(term.variable() == variable)
+            result = term.variable().replacement();
+        break;
+    case TermType::Abstraction:
+        if(term.argument() != variable){
+            result = findReplacement(variable, term.trunk());
+        }
+        break;
+    case TermType::Application:
+        result = commonVariable(findReplacement(variable, term.leftTerm()),
+                          findReplacement(variable, term.rightTerm()));
+        break;
+    }
+    return commonVariable(result, variable);
 }

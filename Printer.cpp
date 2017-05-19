@@ -11,7 +11,7 @@ void Printer::printTerm(const Term& term)
     
     switch(term.type()) {
     case TermType::Variable:
-        mOut << term.variable();
+        printVariable(term.variable());
         break;
     case TermType::Application:
         mOut << "(";
@@ -21,12 +21,21 @@ void Printer::printTerm(const Term& term)
         mOut << ")";
         break;
     case TermType::Abstraction:
-        mOut << "\\" << term.argument() << ".";
+        mOut << "\\";
+        printVariable(term.argument());
+        mOut << ".";
         printTerm(term.trunk());
         break;
     }
     
     printTermSuffixes(term);
+}
+
+void Printer::printVariable(Variable variable)
+{    
+    mOut << variable.name();
+    if(variable.id() > 0)
+        mOut << (size_t)variable.id();
 }
 
 void Printer::setSurroundedTerms(std::map<const Term *, std::pair<std::string, std::string>> terms)

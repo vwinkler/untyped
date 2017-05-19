@@ -10,11 +10,28 @@ enum class TermType {
     Abstraction
 };
 
-struct Term {    
+class Variable {
 public:
-    explicit Term(char variable);
+    Variable() = default;
+    Variable(char var);
+    Variable replacement();
+    char name() const;
+    unsigned char id() const;
+    
+private:
+    char mName;
+    unsigned char mId;
+};
+
+bool operator==(Variable left, Variable right);
+bool operator!=(Variable left, Variable right);
+Variable commonVariable(Variable left, Variable right);
+
+class Term {  
+public:
+    explicit Term(Variable variable);
     Term(Term leftTerm, Term rightTerm);
-    Term(char argument, Term trunk);
+    Term(Variable argument, Term trunk);
     ~Term();
     Term(const Term& term);
     Term(Term&& term);
@@ -22,16 +39,16 @@ public:
     Term& operator=(Term&& term);
     
     TermType type() const;
-    char variable() const;
-    void setVariable(char variable);
+    Variable variable() const;
+    void setVariable(Variable variable);
     const Term& leftTerm() const;
     Term& leftTerm();
     void setLeftTerm(Term term);
     const Term& rightTerm() const;
     Term& rightTerm();
     void setRightTerm(Term term);
-    char argument() const;
-    void setArgument(char argument);
+    Variable argument() const;
+    void setArgument(Variable argument);
     const Term& trunk() const;
     Term& trunk();
     void setTrunk(Term trunk);
@@ -39,13 +56,13 @@ public:
 private:
     TermType mType;
     union {
-        char mVariable;
+        Variable mVariable;
         struct {
             Term* mLeftTerm;
             Term* mRightTerm;
         } mApplication;
         struct {
-            char mArgument;
+            Variable mArgument;
             Term* mTrunk;
         } mAbstraction;
     };

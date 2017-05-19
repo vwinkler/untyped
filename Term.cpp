@@ -1,8 +1,57 @@
 #include "Term.h"
 #include <cassert>
 #include <memory>
+#include <limits>
+#include <sstream>
 
-Term::Term(char variable)
+Variable::Variable(char var)
+    :   mName(var), mId(0)
+{
+}
+
+Variable Variable::replacement()
+{
+    Variable result(*this);
+    if(result.mId == std::numeric_limits<unsigned char>::max()){
+        std::stringstream s;
+        s << "can not replace variable, limit ("
+        << std::numeric_limits<unsigned char>::max()
+        << ") of replacements for '"
+        << result.mName << "' exceeded";
+        throw std::runtime_error(s.str());
+    }
+    
+    ++result.mId;
+    return result;
+}
+
+char Variable::name() const
+{
+    return mName;
+}
+
+unsigned char Variable::id() const
+{
+    return mId;
+}
+
+bool operator==(Variable left, Variable right)
+{
+    return (left.id() == right.id()) && (left.name() == right.name());
+}
+
+bool operator!=(Variable left, Variable right)
+{
+    return !(left == right);
+}
+
+Variable commonVariable(Variable left, Variable right)
+{
+    assert(left.name() == right.name());
+    return left.id() < right.id() ? right : left;
+}
+
+Term::Term(Variable variable)
     :   mType(TermType::Variable), mVariable(variable)
 {
 }
@@ -13,7 +62,7 @@ Term::Term(Term leftTerm, Term rightTerm)
 {
 }
 
-Term::Term(char argument, Term trunk)
+Term::Term(Variable argument, Term trunk)
     :   mType(TermType::Abstraction),
         mAbstraction{argument, new Term(std::move(trunk))}
 {
@@ -171,12 +220,12 @@ TermType Term::type() const {
     return mType;
 }
 
-char Term::variable() const {
+Variable Term::variable() const {
     assert(mType == TermType::Variable);
     return mVariable;
 }
 
-void Term::setVariable(char variable)
+void Term::setVariable(Variable variable)
 {
     assert(mType == TermType::Variable);
     mVariable = variable;
@@ -218,13 +267,13 @@ void Term::setRightTerm(Term term) {
     mApplication.mRightTerm = new Term(std::move(term));
 }
 
-char Term::argument() const
+Variable Term::argument() const
 {
     assert(mType == TermType::Abstraction);
     return mAbstraction.mArgument;
 }
 
-void Term::setArgument(char argument)
+void Term::setArgument(Variable argument)
 {
     assert(mType == TermType::Abstraction);
     mAbstraction.mArgument = argument;

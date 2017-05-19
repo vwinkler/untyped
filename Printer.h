@@ -16,6 +16,7 @@ class Printer
 public:
     Printer(std::ostream& ostream);
     void printTerm(const Term& term);
+    void printVariable(Variable variable);
     
     void setSurroundedTerms(std::map<const Term*, std::pair<std::string, std::string>> terms);
     

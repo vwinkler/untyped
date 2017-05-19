@@ -19,7 +19,8 @@ public:
 private:
     static const Term* findRedex(const Term* term);
     static Term* findRedex(Term* term);
-    static Term substitute(char variable, Term& target, const Term& term);
+    static void substitute(Variable variable, Term& target, const Term& term);
+    static Variable findReplacement(Variable variable, const Term& term);
 };
 
 #endif // INTERPRETER_H
