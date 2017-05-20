@@ -53,17 +53,17 @@ std::string SyntaxError::convertChar(char c)
 }
 
 Parser::Parser(std::istream& in)
- : mIn(in)
+ : mIn(in), mCharCount(0)
 {
 }
 
 Term Parser::parseTerm()
 {
     Term result('\0');
-    char c = mIn.peek();
+    char c = peek();
     switch(c) {
     case '(': { // Application
-        mIn.get();
+        get();
         Term leftTerm = parseTerm();
         expect(' ');
         Term rightTerm = parseTerm();
@@ -72,21 +72,20 @@ Term Parser::parseTerm()
         break;
     }
     case '\\': { // Abstraction
-        mIn.get();
-        char argument = mIn.get();
+        get();
+        char argument = get();
         expect('.');
         Term trunk = parseTerm();
         result = Term(argument, std::move(trunk));
         break;
     }
     default: { // Variable
+        get();
         if(c < 'a' || c >= 'z') {
-            SyntaxError error(mIn.gcount(), c, "alphabetic character");
+            SyntaxError error(mCharCount, c, "alphabetic character");
             throw error;
         }
-        char variable = c;
-        mIn.get();
-        result = Term(variable);
+        result = Term(c);
         break;
     }
     }
@@ -100,10 +99,10 @@ void Parser::expect(char expectedChar)
 
 void Parser::expect(std::vector<char> expectedChars)
 {
-    char c = mIn.get();
+    char c = get();
     auto it = std::find(expectedChars.begin(), expectedChars.end(), c);
     if(it == expectedChars.end()) {
-        SyntaxError error(mIn.gcount(), c, std::move(expectedChars));
+        SyntaxError error(mCharCount, c, std::move(expectedChars));
         throw error;
     }
 }
@@ -113,4 +112,15 @@ Term Parser::buildSyntaxTree()
     Term result = parseTerm();
     expect(std::char_traits<char>::eof());
     return result;
+}
+
+char Parser::get()
+{
+    ++mCharCount;
+    return mIn.get();
+}
+
+char Parser::peek()
+{
+    return mIn.peek();
 }

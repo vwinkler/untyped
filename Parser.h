@@ -23,10 +23,14 @@ private:
 class Parser
 {
     std::istream& mIn;
+    size_t mCharCount;
     
     Term parseTerm();
     void expect(char expectedChar);
     void expect(std::vector<char> expectedChars);
+    
+    char peek();
+    char get();
     
 public:
     Parser(std::istream& in);
