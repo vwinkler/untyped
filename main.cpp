@@ -11,7 +11,7 @@ void processExpression(const std::string& expr) {
     Term term('\0');
     try {
         term = parser.buildSyntaxTree();
-        std::cout << "execution ...";
+        //std::cout << "execution ...\n";
         
         Printer printer(std::cout);
         Interpreter interpreter(term);
@@ -19,11 +19,11 @@ void processExpression(const std::string& expr) {
         do {
             const Term* redex = interpreter.nextRedex();
             printer.setSurroundedTerms({std::make_pair(redex, std::make_pair("\033[1;31m", "\033[0m"))});
-            std::cout << std::endl;
             printer.printTerm(interpreter.term());
             changed = interpreter.applyOnce();
+            std::cout << "\n";
         } while(changed);
-        std::cout << std::endl;
+        //std::cout << std::endl;
     } catch(const SyntaxError& ex) {
         std::cerr << ex.what() << std::endl;
     }
@@ -38,12 +38,14 @@ void printHelp() {
 int main(int argc, char **argv) {
     bool keepLooping = true;
     while(keepLooping){
-        std::cout << "insert lambda-expression: ";
+        //std::cout << "insert lambda-expression: ";
         std::string input;
         std::getline(std::cin, input);
         
-        if(input[0] != ':' || input.size() < 2)
+        if(input[0] != ':' || input.size() < 2){
             processExpression(input);
+            std::cout << "\n";
+        }
         else if(input[1] == 'q')
             keepLooping = false;
         else if(input[1] == '?')
