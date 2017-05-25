@@ -40,9 +40,12 @@ int main(int argc, char **argv) {
     while(keepLooping){
         //std::cout << "insert lambda-expression: ";
         std::string input;
-        std::getline(std::cin, input);
         
-        if(input[0] != ':' || input.size() < 2){
+        if(!std::getline(std::cin, input))
+            keepLooping = false;
+        else if(input.size() < 1 || input == "\n")
+            std::cout << "\n";
+        else if(input[0] != ':' || input.size() < 2){
             processExpression(input);
             std::cout << "\n";
         }
